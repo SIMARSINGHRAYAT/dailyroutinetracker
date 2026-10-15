@@ -1,0 +1,152 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #06090f;
+  --panel: #0d1320;
+  --panel-soft: #111827;
+  --text: #e6edf7;
+  --muted: #9aa6bd;
+  --border: rgba(255, 255, 255, 0.12);
+  --accent: #3b82f6;
+  --accent-2: #8b5cf6;
+  --success: #10b981;
+}
+
+html[data-theme="light"] {
+  --bg: #f4f7fb;
+  --panel: #ffffff;
+  --panel-soft: #eef3fb;
+  --text: #0f172a;
+  --muted: #475569;
+  --border: rgba(15, 23, 42, 0.12);
+  --accent: #2563eb;
+  --accent-2: #7c3aed;
+  --success: #059669;
+}
+
+* {
+  border-color: var(--border);
+}
+
+body {
+  background: radial-gradient(circle at 20% 10%, rgba(37, 99, 235, 0.2), transparent 30%),
+    radial-gradient(circle at 80% 0%, rgba(124, 58, 237, 0.15), transparent 30%),
+    var(--bg);
+}
+
+.chrome-text {
+  background-image: linear-gradient(
+    180deg,
+    #f8fafc 0%,
+    #e2e8f0 26%,
+    #cbd5e1 48%,
+    #f8fafc 65%,
+    #94a3b8 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 0 20px rgba(226, 232, 240, 0.2);
+}
+
+.glass {
+  background: color-mix(in srgb, var(--panel) 78%, transparent);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+}
+
+.card {
+  border: 1px solid var(--border);
+  background: transparent;
+  border-radius: 18px;
+  backdrop-filter: blur(6px);
+}
+
+.btn-primary {
+  @apply inline-flex items-center justify-center rounded-xl px-4 py-2.5 font-medium text-white transition;
+  background-image: linear-gradient(to right, var(--accent), var(--accent-2));
+  box-shadow: 0 10px 30px rgba(37, 99, 235, 0.3);
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.08);
+}
+
+.btn-secondary {
+  @apply inline-flex items-center justify-center rounded-xl px-4 py-2.5 font-medium transition;
+  border: 1px solid var(--border);
+  background: transparent;
+}
+
+input,
+select,
+textarea {
+  @apply w-full rounded-xl border px-3 py-2.5 outline-none;
+  border-color: var(--border);
+  background: transparent;
+}
+
+input:focus,
+select:focus,
+textarea:focus,
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 75%, white);
+  outline-offset: 2px;
+}
+
+.progress-track {
+  @apply h-2 w-full overflow-hidden rounded-full;
+  background: color-mix(in srgb, var(--panel-soft) 92%, transparent);
+}
+
+.progress-bar {
+  @apply h-full rounded-full transition-all duration-500;
+  background-image: linear-gradient(to right, var(--success), var(--accent));
+}
+
+.table-shell {
+  @apply overflow-auto rounded-2xl border;
+  border-color: var(--border);
+  background: transparent;
+}
+
+.ydr-table {
+  @apply min-w-full border-collapse text-sm;
+  background: transparent;
+}
+
+.ydr-table th,
+.ydr-table td {
+  @apply border px-3 py-2 text-left;
+  border-color: var(--border);
+  background: transparent;
+}
+
+.ydr-table thead th {
+  @apply sticky top-0 z-20;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.ydr-table .sticky-col {
+  @apply sticky left-0 z-10;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.glossy-grid-bg {
+  background-color: #05070c;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 36px 36px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
