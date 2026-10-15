@@ -23,6 +23,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<Theme>("dark");
 
   useEffect(() => {
+    // Revert and clear any previously forced root font size scaling
+    document.documentElement.style.fontSize = "";
+    localStorage.removeItem("drt-page-scale");
+
     const saved = localStorage.getItem("ydr-theme") as Theme | null;
     const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
     const next = saved ?? (prefersDark ? "dark" : "light");
