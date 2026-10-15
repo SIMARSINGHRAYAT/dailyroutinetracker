@@ -37,7 +37,7 @@ export default function WelcomePage() {
 
   return (
     <main
-      className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 text-center"
+      className="glossy-grid-bg relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 text-center"
       style={{ fontFamily: '"Comic Sans MS", "Comic Sans", cursive' }}
     >
       <div className="pointer-events-none absolute inset-0">
