@@ -12,6 +12,7 @@ export async function ensureDatabaseSchema(): Promise<void> {
     await db.execute(sql`
       CREATE TABLE IF NOT EXISTS trackers (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        device_id VARCHAR(128) NOT NULL DEFAULT 'default',
         name VARCHAR(160) NOT NULL,
         start_date TIMESTAMP,
         active_days INTEGER NOT NULL DEFAULT 3,
@@ -22,6 +23,9 @@ export async function ensureDatabaseSchema(): Promise<void> {
         created_at TIMESTAMP NOT NULL DEFAULT NOW(),
         updated_at TIMESTAMP NOT NULL DEFAULT NOW()
       );
+
+      ALTER TABLE trackers ADD COLUMN IF NOT EXISTS device_id VARCHAR(128) NOT NULL DEFAULT 'default';
+      CREATE INDEX IF NOT EXISTS trackers_device_id_idx ON trackers(device_id);
 
       CREATE TABLE IF NOT EXISTS tracker_tasks (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

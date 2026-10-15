@@ -1,4 +1,5 @@
 import type { TrackerHydrated } from "@/lib/tracker-math";
+import { getDeviceId } from "@/lib/device";
 
 export type Reminder = {
   id: string;
@@ -13,10 +14,12 @@ export type Reminder = {
 };
 
 async function request<T>(url: string, init?: RequestInit): Promise<T> {
+  const deviceId = getDeviceId();
   const res = await fetch(url, {
     ...init,
     headers: {
       "Content-Type": "application/json",
+      "x-device-id": deviceId,
       ...(init?.headers || {}),
     },
   });

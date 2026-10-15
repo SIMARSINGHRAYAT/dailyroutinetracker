@@ -10,7 +10,12 @@ export async function POST(
   try {
     const body = await req.json().catch(() => ({}));
     const { id } = await ctx.params;
-    const data = await duplicateTracker(id, Boolean(body?.copyHistory));
+    const deviceId =
+      req.headers.get("x-device-id") ||
+      req.cookies.get("drt-device-id")?.value ||
+      "default";
+
+    const data = await duplicateTracker(id, Boolean(body?.copyHistory), deviceId);
 
     if (!data) {
       return NextResponse.json({ error: "Tracker not found" }, { status: 404 });

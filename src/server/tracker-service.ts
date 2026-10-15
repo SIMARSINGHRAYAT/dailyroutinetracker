@@ -26,6 +26,7 @@ export type CreateTrackerInput = {
   startDate?: string | null;
   color?: string;
   icon?: string;
+  deviceId?: string;
 };
 
 const mapHydrated = async (trackerId: string): Promise<TrackerHydrated | null> => {
@@ -74,14 +75,21 @@ const mapHydrated = async (trackerId: string): Promise<TrackerHydrated | null> =
   };
 };
 
-export async function listTrackers() {
+export async function listTrackers(deviceId?: string) {
   await ensureDatabaseSchema();
+  if (deviceId && deviceId !== "all") {
+    return db
+      .select()
+      .from(trackers)
+      .where(eq(trackers.deviceId, deviceId))
+      .orderBy(desc(trackers.createdAt));
+  }
   return db.select().from(trackers).orderBy(desc(trackers.createdAt));
 }
 
-export async function listHydratedTrackers() {
+export async function listHydratedTrackers(deviceId?: string) {
   await ensureDatabaseSchema();
-  const all = await listTrackers();
+  const all = await listTrackers(deviceId);
   const result = await Promise.all(all.map((t) => mapHydrated(t.id)));
   return result.filter(Boolean) as TrackerHydrated[];
 }
@@ -97,6 +105,7 @@ export async function createTracker(input: CreateTrackerInput) {
 
   await db.insert(trackers).values({
     id: trackerId,
+    deviceId: input.deviceId || "default",
     name: input.name,
     startDate: input.startDate ? new Date(input.startDate) : null,
     activeDays: input.days,
@@ -349,7 +358,7 @@ export async function archiveTracker(trackerId: string, archived: boolean) {
   return mapHydrated(trackerId);
 }
 
-export async function duplicateTracker(trackerId: string, copyHistory: boolean) {
+export async function duplicateTracker(trackerId: string, copyHistory: boolean, deviceId?: string) {
   await ensureDatabaseSchema();
   const source = await mapHydrated(trackerId);
   if (!source) return null;
@@ -367,6 +376,7 @@ export async function duplicateTracker(trackerId: string, copyHistory: boolean) 
     startDate: source.startDate,
     color: source.color,
     icon: source.icon,
+    deviceId: deviceId || "default",
   });
 
   if (!clone) return null;
@@ -398,7 +408,7 @@ export async function duplicateTracker(trackerId: string, copyHistory: boolean) 
       }))
       .filter((row) => targetTasks.some((t) => t.id === row.taskId));
 
-  if (rows.length) {
+    if (rows.length) {
       await db.insert(trackerCompletions).values(rows);
     }
   }
@@ -458,17 +468,29 @@ export async function updateReminder(
   return getReminder(trackerId);
 }
 
-export async function importBackup(data: TrackerHydrated[]) {
+export async function importBackup(data: TrackerHydrated[], deviceId?: string) {
   await ensureDatabaseSchema();
+  const targetDeviceId = deviceId || "default";
+
   await db.transaction(async (tx) => {
-    await tx.delete(trackerCompletions);
-    await tx.delete(trackerTasks);
-    await tx.delete(reminderSettings);
-    await tx.delete(trackers);
+    // Only clear trackers for THIS device so imports do not delete other users' trackers
+    const userTrackers = await tx
+      .select({ id: trackers.id })
+      .from(trackers)
+      .where(eq(trackers.deviceId, targetDeviceId));
+
+    const userTrackerIds = userTrackers.map((t) => t.id);
+    if (userTrackerIds.length) {
+      await tx.delete(trackerCompletions).where(inArray(trackerCompletions.trackerId, userTrackerIds));
+      await tx.delete(trackerTasks).where(inArray(trackerTasks.trackerId, userTrackerIds));
+      await tx.delete(reminderSettings).where(inArray(reminderSettings.trackerId, userTrackerIds));
+      await tx.delete(trackers).where(inArray(trackers.id, userTrackerIds));
+    }
 
     for (const tracker of data) {
       await tx.insert(trackers).values({
         id: tracker.id,
+        deviceId: targetDeviceId,
         name: tracker.name,
         startDate: tracker.startDate ? new Date(tracker.startDate) : null,
         activeDays: tracker.activeDays,
@@ -509,7 +531,7 @@ export async function importBackup(data: TrackerHydrated[]) {
     }
   });
 
-  return listHydratedTrackers();
+  return listHydratedTrackers(targetDeviceId);
 }
 
 export async function bulkDeleteTasks(trackerId: string, taskIds: string[]) {

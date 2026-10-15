@@ -12,6 +12,7 @@ import {
 
 export const trackers = pgTable("trackers", {
   id: uuid("id").defaultRandom().primaryKey(),
+  deviceId: varchar("device_id", { length: 128 }).notNull().default("default"),
   name: varchar("name", { length: 160 }).notNull(),
   startDate: timestamp("start_date", { withTimezone: false, mode: "date" }),
   activeDays: integer("active_days").notNull().default(3),

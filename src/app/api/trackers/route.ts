@@ -7,9 +7,18 @@ import {
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+function extractDeviceId(req: NextRequest): string {
+  const headerId = req.headers.get("x-device-id");
+  if (headerId && headerId.trim()) return headerId.trim();
+  const cookieId = req.cookies.get("drt-device-id")?.value;
+  if (cookieId && cookieId.trim()) return cookieId.trim();
+  return "default";
+}
+
+export async function GET(req: NextRequest) {
   try {
-    const data = await listHydratedTrackers();
+    const deviceId = extractDeviceId(req);
+    const data = await listHydratedTrackers(deviceId);
     return NextResponse.json({ data });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Failed to load trackers";
@@ -19,10 +28,11 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
+    const deviceId = extractDeviceId(req);
     const body = await req.json();
 
     if (body?.mode === "import") {
-      const imported = await importBackup(body.trackers ?? []);
+      const imported = await importBackup(body.trackers ?? [], deviceId);
       return NextResponse.json({ data: imported });
     }
 
@@ -51,6 +61,7 @@ export async function POST(req: NextRequest) {
       startDate: body?.startDate || null,
       color: body?.color,
       icon: body?.icon,
+      deviceId,
     });
 
     return NextResponse.json({ data: created }, { status: 201 });
