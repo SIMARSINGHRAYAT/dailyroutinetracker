@@ -1,6 +1,7 @@
 import "server-only";
 
 import { db } from "@/db";
+import { ensureDatabaseSchema } from "@/db/init";
 import {
   reminderSettings,
   trackerCompletions,
@@ -28,6 +29,7 @@ export type CreateTrackerInput = {
 };
 
 const mapHydrated = async (trackerId: string): Promise<TrackerHydrated | null> => {
+  await ensureDatabaseSchema();
   const [tracker] = await db
     .select()
     .from(trackers)
@@ -73,10 +75,12 @@ const mapHydrated = async (trackerId: string): Promise<TrackerHydrated | null> =
 };
 
 export async function listTrackers() {
+  await ensureDatabaseSchema();
   return db.select().from(trackers).orderBy(desc(trackers.createdAt));
 }
 
 export async function listHydratedTrackers() {
+  await ensureDatabaseSchema();
   const all = await listTrackers();
   const result = await Promise.all(all.map((t) => mapHydrated(t.id)));
   return result.filter(Boolean) as TrackerHydrated[];
@@ -87,6 +91,7 @@ export async function getHydratedTracker(trackerId: string) {
 }
 
 export async function createTracker(input: CreateTrackerInput) {
+  await ensureDatabaseSchema();
   const trackerId = randomUUID();
   const now = new Date();
 
@@ -132,6 +137,7 @@ export async function updateTrackerBasics(
     activeDays?: number;
   }
 ) {
+  await ensureDatabaseSchema();
   const [existing] = await db
     .select()
     .from(trackers)
@@ -164,6 +170,7 @@ export async function updateTrackerBasics(
 }
 
 export async function addTask(trackerId: string, name: string) {
+  await ensureDatabaseSchema();
   const [maxOrder] = await db
     .select({ max: sql<number>`coalesce(max(${trackerTasks.sortOrder}), -1)` })
     .from(trackerTasks)
@@ -192,6 +199,7 @@ export async function updateTask(
   taskId: string,
   updates: { name?: string; sortOrder?: number; archived?: boolean }
 ) {
+  await ensureDatabaseSchema();
   await db
     .update(trackerTasks)
     .set({
@@ -212,6 +220,7 @@ export async function reorderTasks(
   trackerId: string,
   payload: Array<{ id: string; sortOrder: number }>
 ) {
+  await ensureDatabaseSchema();
   await db.transaction(async (tx) => {
     for (const item of payload) {
       await tx
@@ -237,6 +246,7 @@ export async function reorderTasks(
 }
 
 export async function addDays(trackerId: string, additionalDays: number) {
+  await ensureDatabaseSchema();
   const [tracker] = await db
     .select()
     .from(trackers)
@@ -265,6 +275,7 @@ export async function toggleCompletion(
   dayIndex: number,
   completed: boolean
 ) {
+  await ensureDatabaseSchema();
   await db
     .insert(trackerCompletions)
     .values({
@@ -296,6 +307,7 @@ export async function toggleCompletion(
 }
 
 export async function clearAllCompletions(trackerId: string) {
+  await ensureDatabaseSchema();
   await db
     .delete(trackerCompletions)
     .where(eq(trackerCompletions.trackerId, trackerId));
@@ -309,6 +321,7 @@ export async function clearAllCompletions(trackerId: string) {
 }
 
 export async function clearDayCompletions(trackerId: string, dayIndex: number) {
+  await ensureDatabaseSchema();
   await db
     .delete(trackerCompletions)
     .where(and(eq(trackerCompletions.trackerId, trackerId), eq(trackerCompletions.dayIndex, dayIndex)));
@@ -322,10 +335,12 @@ export async function clearDayCompletions(trackerId: string, dayIndex: number) {
 }
 
 export async function deleteTracker(trackerId: string) {
+  await ensureDatabaseSchema();
   await db.delete(trackers).where(eq(trackers.id, trackerId));
 }
 
 export async function archiveTracker(trackerId: string, archived: boolean) {
+  await ensureDatabaseSchema();
   await db
     .update(trackers)
     .set({ archived, updatedAt: new Date() })
@@ -335,6 +350,7 @@ export async function archiveTracker(trackerId: string, archived: boolean) {
 }
 
 export async function duplicateTracker(trackerId: string, copyHistory: boolean) {
+  await ensureDatabaseSchema();
   const source = await mapHydrated(trackerId);
   if (!source) return null;
 
@@ -382,7 +398,7 @@ export async function duplicateTracker(trackerId: string, copyHistory: boolean) 
       }))
       .filter((row) => targetTasks.some((t) => t.id === row.taskId));
 
-    if (rows.length) {
+  if (rows.length) {
       await db.insert(trackerCompletions).values(rows);
     }
   }
@@ -391,6 +407,7 @@ export async function duplicateTracker(trackerId: string, copyHistory: boolean) 
 }
 
 export async function getReminder(trackerId: string) {
+  await ensureDatabaseSchema();
   const [row] = await db
     .select()
     .from(reminderSettings)
@@ -410,6 +427,7 @@ export async function updateReminder(
     timezone?: string;
   }
 ) {
+  await ensureDatabaseSchema();
   const existing = await getReminder(trackerId);
   if (!existing) {
     await db.insert(reminderSettings).values({
@@ -441,6 +459,7 @@ export async function updateReminder(
 }
 
 export async function importBackup(data: TrackerHydrated[]) {
+  await ensureDatabaseSchema();
   await db.transaction(async (tx) => {
     await tx.delete(trackerCompletions);
     await tx.delete(trackerTasks);
@@ -494,6 +513,7 @@ export async function importBackup(data: TrackerHydrated[]) {
 }
 
 export async function bulkDeleteTasks(trackerId: string, taskIds: string[]) {
+  await ensureDatabaseSchema();
   if (!taskIds.length) return mapHydrated(trackerId);
 
   await db

@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
+import { AlertCircle, RefreshCw } from "lucide-react";
 import { useTrackers } from "@/components/tracker-provider";
 import { CreateTrackerModal } from "@/components/views/create-tracker-modal";
 import { TrackerCard } from "@/components/views/tracker-card";
@@ -10,7 +11,7 @@ import { computeTrackerStats } from "@/lib/tracker-math";
 import { exportTrackerPdf } from "@/lib/pdf";
 
 export function DashboardClient() {
-  const { trackers, loading, setTrackers } = useTrackers();
+  const { trackers, loading, error, refresh, setTrackers } = useTrackers();
   const [openCreate, setOpenCreate] = useState(false);
 
   const list = useMemo(
@@ -73,7 +74,28 @@ export function DashboardClient() {
         ))}
       </div>
 
-      {loading ? (
+      {error ? (
+        <div className="mt-7 rounded-2xl border border-red-500/30 bg-red-950/20 p-6 backdrop-blur-sm text-slate-200">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="h-6 w-6 text-red-400 shrink-0 mt-0.5" />
+            <div className="space-y-2">
+              <h2 className="font-semibold text-red-200 text-lg">Database Setup Required</h2>
+              <p className="text-sm text-slate-300">
+                {error}
+              </p>
+              <div className="text-xs text-slate-400 bg-black/40 rounded-lg p-3 font-mono">
+                Make sure to set <span className="text-cyan-300">DATABASE_URL</span> or connect <span className="text-emerald-300">Vercel Postgres / Neon</span> in your Vercel project environment variables.
+              </div>
+              <button
+                onClick={() => refresh()}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-white/20 hover:border-white/40 text-xs font-medium text-slate-200 transition"
+              >
+                <RefreshCw className="h-3.5 w-3.5" /> Try again
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : loading ? (
         <p className="mt-10 text-slate-300">Loading trackers...</p>
       ) : list.length ? (
         <div className="mt-7 grid gap-4 md:grid-cols-2 xl:grid-cols-3">

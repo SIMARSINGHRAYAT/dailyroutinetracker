@@ -5,9 +5,16 @@ import {
   listHydratedTrackers,
 } from "@/server/tracker-service";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
-  const data = await listHydratedTrackers();
-  return NextResponse.json({ data });
+  try {
+    const data = await listHydratedTrackers();
+    return NextResponse.json({ data });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Failed to load trackers";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
 }
 
 export async function POST(req: NextRequest) {
@@ -47,7 +54,8 @@ export async function POST(req: NextRequest) {
     });
 
     return NextResponse.json({ data: created }, { status: 201 });
-  } catch {
-    return NextResponse.json({ error: "Invalid request payload" }, { status: 400 });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Invalid request payload";
+    return NextResponse.json({ error: message }, { status: 400 });
   }
 }

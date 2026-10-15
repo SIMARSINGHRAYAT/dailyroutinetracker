@@ -15,6 +15,7 @@ import {
 type TrackerContextValue = {
   trackers: TrackerHydrated[];
   loading: boolean;
+  error: string | null;
   refresh: () => Promise<void>;
   setTrackers: React.Dispatch<React.SetStateAction<TrackerHydrated[]>>;
 };
@@ -24,12 +25,17 @@ const TrackerContext = createContext<TrackerContextValue | null>(null);
 export function TrackerProvider({ children }: { children: ReactNode }) {
   const [trackers, setTrackers] = useState<TrackerHydrated[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       const data = await api.listTrackers();
       setTrackers(data);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to connect to database";
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -40,8 +46,8 @@ export function TrackerProvider({ children }: { children: ReactNode }) {
   }, [refresh]);
 
   const value = useMemo(
-    () => ({ trackers, loading, refresh, setTrackers }),
-    [trackers, loading, refresh]
+    () => ({ trackers, loading, error, refresh, setTrackers }),
+    [trackers, loading, error, refresh]
   );
 
   return <TrackerContext.Provider value={value}>{children}</TrackerContext.Provider>;
