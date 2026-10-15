@@ -93,40 +93,51 @@ export function CreateTrackerModal({ open, onClose, onCreate }: Props) {
   return (
     <AnimatePresence>
       <motion.div
-        className="fixed inset-0 z-50 grid place-items-center bg-transparent p-4"
+        className="fixed inset-0 z-50 grid place-items-center bg-black/75 backdrop-blur-md p-4 overflow-y-auto"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
+        onClick={onClose}
       >
         <motion.div
+          onClick={(e) => e.stopPropagation()}
           initial={{ opacity: 0, scale: 0.94, y: 24, rotateX: 8 }}
           animate={{ opacity: 1, scale: 1, y: 0, rotateX: 0 }}
           exit={{ opacity: 0, scale: 0.96, y: 10, rotateX: 6 }}
           transition={{ type: "spring", stiffness: 220, damping: 22 }}
           style={{ transformStyle: "preserve-3d", perspective: 1200 }}
-          className="w-full max-w-3xl rounded-3xl border border-white/25 bg-transparent p-6"
+          className="relative w-full max-w-3xl rounded-3xl border border-white/20 bg-black/85 backdrop-blur-2xl p-6 sm:p-8 shadow-2xl shadow-black/80 my-8 text-slate-100"
         >
-          <div className="mb-5 flex items-center justify-between">
-            <h2 className="text-xl font-semibold">Generate Tracker</h2>
-            <button onClick={onClose} aria-label="Close">
+          <div className="mb-6 flex items-center justify-between border-b border-white/10 pb-4">
+            <div>
+              <h2 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-fuchsia-300 via-sky-300 to-emerald-300 bg-clip-text text-transparent">
+                Generate Tracker
+              </h2>
+              <p className="mt-1 text-xs text-slate-400">Set up your routine duration, tasks, and schedule</p>
+            </div>
+            <button
+              onClick={onClose}
+              aria-label="Close"
+              className="rounded-xl border border-white/10 bg-white/5 p-2 text-slate-400 hover:border-white/25 hover:bg-white/10 hover:text-white transition"
+            >
               <X className="h-5 w-5" />
             </button>
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
-            <label className="space-y-1 text-sm">
-              <span>Tracker Name</span>
+            <label className="space-y-1.5 text-sm">
+              <span className="font-medium text-slate-300">Tracker Name</span>
               <input
-                className="bg-transparent"
-                placeholder="30-Day Coding Challenge"
+                className="w-full rounded-xl border border-white/15 bg-black/50 px-3.5 py-2.5 text-slate-100 placeholder:text-slate-500 focus:border-cyan-400 focus:outline-none focus:ring-1 focus:ring-cyan-400/50 transition"
+                placeholder="e.g. 30-Day Fitness Challenge"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
               />
             </label>
-            <label className="space-y-1 text-sm">
-              <span>How Many Days Would You Like to Track?</span>
+            <label className="space-y-1.5 text-sm">
+              <span className="font-medium text-slate-300">How Many Days Would You Like to Track?</span>
               <input
-                className="bg-transparent"
+                className="w-full rounded-xl border border-white/15 bg-black/50 px-3.5 py-2.5 text-slate-100 placeholder:text-slate-500 focus:border-cyan-400 focus:outline-none focus:ring-1 focus:ring-cyan-400/50 transition"
                 type="number"
                 min={1}
                 max={3650}
@@ -134,10 +145,10 @@ export function CreateTrackerModal({ open, onClose, onCreate }: Props) {
                 onChange={(e) => setDays(Number(e.target.value || 1))}
               />
             </label>
-            <label className="space-y-1 text-sm">
-              <span>How Many Tasks Would You Like to Track?</span>
+            <label className="space-y-1.5 text-sm">
+              <span className="font-medium text-slate-300">How Many Tasks Would You Like to Track?</span>
               <input
-                className="bg-transparent"
+                className="w-full rounded-xl border border-white/15 bg-black/50 px-3.5 py-2.5 text-slate-100 placeholder:text-slate-500 focus:border-cyan-400 focus:outline-none focus:ring-1 focus:ring-cyan-400/50 transition"
                 type="number"
                 min={1}
                 max={60}
@@ -145,10 +156,10 @@ export function CreateTrackerModal({ open, onClose, onCreate }: Props) {
                 onChange={(e) => setTasksCount(Math.max(1, Math.min(60, Number(e.target.value || 1))))}
               />
             </label>
-            <label className="space-y-1 text-sm">
-              <span>Optional Start Date</span>
+            <label className="space-y-1.5 text-sm">
+              <span className="font-medium text-slate-300">Optional Start Date</span>
               <input
-                className="bg-transparent"
+                className="w-full rounded-xl border border-white/15 bg-black/50 px-3.5 py-2.5 text-slate-100 placeholder:text-slate-500 focus:border-cyan-400 focus:outline-none focus:ring-1 focus:ring-cyan-400/50 transition"
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
@@ -157,13 +168,16 @@ export function CreateTrackerModal({ open, onClose, onCreate }: Props) {
           </div>
 
           <section className="mt-5">
-            <p className="mb-2 text-sm font-medium">Task Names</p>
-            <div className="grid gap-3 md:grid-cols-2">
+            <div className="mb-2.5 flex items-center justify-between">
+              <p className="text-sm font-semibold text-slate-200">Task Names</p>
+              <span className="text-xs text-slate-400">{visibleTasks.length} tasks</span>
+            </div>
+            <div className="grid gap-3 md:grid-cols-2 max-h-56 overflow-y-auto pr-1">
               {visibleTasks.map((task, idx) => (
                 <label key={idx} className="space-y-1 text-sm">
-                  <span>Task {idx + 1}</span>
+                  <span className="text-xs text-slate-400">Task {idx + 1}</span>
                   <input
-                    className="bg-transparent"
+                    className="w-full rounded-xl border border-white/15 bg-black/50 px-3.5 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-cyan-400 focus:outline-none focus:ring-1 focus:ring-cyan-400/50 transition"
                     value={task}
                     onChange={(e) => updateTaskName(idx, e.target.value)}
                     placeholder="Please write your task"
@@ -173,21 +187,30 @@ export function CreateTrackerModal({ open, onClose, onCreate }: Props) {
             </div>
           </section>
 
-          <section className="mt-5 rounded-xl border border-white/20 bg-transparent p-4 text-sm">
-            <p className="font-medium">Live Preview</p>
-            <p className="mt-1 text-[var(--muted)]">
-              {name || "Untitled Tracker"} • {days} days • {tasksCount} tasks • {cells} activity cells
+          <section className="mt-5 rounded-2xl border border-white/15 bg-black/50 p-4 text-sm backdrop-blur-sm">
+            <p className="font-medium text-slate-200">Live Preview</p>
+            <p className="mt-1 text-slate-400">
+              <span className="text-cyan-300 font-medium">{name || "Untitled Tracker"}</span> • {days} days • {tasksCount} tasks • {cells} activity cells
             </p>
           </section>
 
           {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
 
-          <div className="mt-6 flex justify-end gap-2">
-            <button className="btn-secondary" onClick={onClose}>
+          <div className="mt-6 flex items-center justify-end gap-3 pt-3 border-t border-white/10">
+            <button
+              type="button"
+              className="inline-flex items-center justify-center rounded-xl border border-white/20 bg-transparent px-5 py-2.5 text-sm font-medium text-slate-300 transition hover:bg-white/10 hover:text-white"
+              onClick={onClose}
+            >
               Cancel
             </button>
-            <button className="btn-primary" onClick={submit} disabled={saving}>
-              {saving ? "Creating..." : "Create Tracker"}
+            <button
+              type="button"
+              className="inline-flex items-center justify-center rounded-xl border border-cyan-300/50 bg-transparent px-6 py-2.5 font-semibold text-cyan-200 transition hover:scale-[1.02] hover:bg-cyan-500/10 hover:border-cyan-300 disabled:opacity-50 disabled:pointer-events-none"
+              onClick={submit}
+              disabled={saving}
+            >
+              {saving ? "Creating..." : "+ Create Tracker"}
             </button>
           </div>
         </motion.div>
