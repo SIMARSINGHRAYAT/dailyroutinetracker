@@ -35,12 +35,12 @@ export function DashboardClient() {
   }, [trackers]);
 
   return (
-    <section className="mx-auto w-full max-w-7xl px-4 py-8 sm:py-10 md:px-8">
+    <section className="mx-auto w-full max-w-7xl px-4 py-10 md:px-8">
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
         <h1 className="bg-gradient-to-r from-fuchsia-300 via-sky-300 to-emerald-300 bg-clip-text text-3xl font-semibold text-transparent md:text-4xl">
           Build Your Winning Streak
         </h1>
-        <p className="mt-2 sm:mt-3 text-sm sm:text-base text-slate-300/90">
+        <p className="mt-3 text-slate-300/90">
           Add trackers, complete actions daily, and keep your momentum visible.
         </p>
       </motion.div>
@@ -54,7 +54,7 @@ export function DashboardClient() {
         </button>
       </div>
 
-      <div className="mt-7 grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mt-7 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {[
           { label: "Total Trackers", value: summary.totalTrackers, tone: "from-purple-300 to-pink-300" },
           { label: "Active Trackers", value: summary.active, tone: "from-sky-300 to-blue-300" },
@@ -98,7 +98,7 @@ export function DashboardClient() {
       ) : loading ? (
         <p className="mt-10 text-slate-300">Loading trackers...</p>
       ) : list.length ? (
-        <div className="mt-7 grid gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
+        <div className="mt-7 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {list.map((tracker) => (
             <TrackerCard
               key={tracker.id}
